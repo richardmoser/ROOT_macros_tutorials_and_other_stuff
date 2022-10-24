@@ -1,0 +1,5 @@
+TODO:
+
+- Fix max bin targeting in sumpowfreq
+- figure out why it isn't summing
+      it's probably because it is targetting a bunk bin number and summing over 0s and bunk pointer crap
