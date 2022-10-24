@@ -9,10 +9,10 @@
 #include <TPaveText.h>
 using namespace std;
 
-void smallmacro(){
+void showerAxisAngles(){
 
-    TString infile = "/home/rj/RadioScatter/doc/smallmultiscat_0MHz_10W_10ns.root";
-//    TString infile = "/home/rj/RadioScatter/doc/multiscat_1MHz_10W_10ns.root";
+    TString infile = "/home/rj/RadioScatter/doc/multiscat_0MHz_10W_10ns.root";
+//    TString infile = "/home/rj/RadioScatter/doc/output_test_100MHz_10W_4ns.root";
     auto ff=TFile::Open(infile, "READ");
     TFile *outfile = new TFile("/home/rj/RadioScatter/outputfiles/voltage_time_angle.root", "RECREATE");
     TTree *outtree = new TTree("tree", "test label");
@@ -23,8 +23,6 @@ void smallmacro(){
     int entry = 0;
 //    string draw;
     string draw = "y";
-//    string draw = "n";
-
 //    cout << "Draw graphics? (y/n) " << endl;
 //    cin >> draw;
 //    auto ff=TFile::Open(infile, "READ");
@@ -48,14 +46,9 @@ void smallmacro(){
     outtree->Branch("voltmax", &voltmax, "voltmax/F");
     outtree->Branch("other_angle_degrees", &other_angle_degrees, "other_angle_degrees/F");
 
-    double noise_flag = 0;
-    cout << "enter a noise level (.00001 is a good start)" << endl;
-//    noise_flag = 0.00001;
-    cin >> noise_flag;
-    cout << "yup" << endl;
+
     for(int i = 0; i < tree->GetEntries(); ++i){
-//    for(int i = 0; i < 1; ++i){
-        cout <<"yup " << i << endl;
+
         tree->GetEntry(i);
         TVector3 shower_angle = event->direction + event->position;
         TVector3 shower_position = event->position;
@@ -75,18 +68,17 @@ void smallmacro(){
             auto canvas = new TCanvas("canvas", "t00");
             //            canvas->Divide(2, 2);
             //            commented for removal of pane 3&4, uncomment above and comment below for 4 pane TCanvas
-            canvas->Divide(2, 2);
-            canvas->SetWindowSize(1200, 1200);
+            canvas->Divide(2, 1);
+            canvas->SetWindowSize(1200, 600);
             canvas->cd(1)->SetGrid();
             gPad->SetLeftMargin(.1);
             gPad->SetBottomMargin(.1);
 
             canvas->cd(1);
             TGraph *time_voltage = event->getGraph(rxindex, txindex);
-//            TH1 *time_voltage = event->getSpectrum(0,rxindex);
             time_voltage->GetXaxis()->SetTitle("Time [ns]");
             time_voltage->GetYaxis()->SetTitle("V");
-            time_voltage->Draw("al");
+            time_voltage->Draw("AC*");
             canvas->cd(2);
             TPaveText *pt = new TPaveText(.05, .1, .95, .9);
             pt->AddText(Form("Max Voltage: %g", voltmax));
@@ -96,7 +88,11 @@ void smallmacro(){
             //            pt->AddText(Form("Other Angle: %g Degrees", (180- (90 + other_angle_degrees))));
 
             pt->Draw(); // Uncomment to print to screen
-
+            string path = "/home/rj/RadioScatter/outputfiles/";
+            string filename = "event" + to_string(i) + ".png";
+            string full_path = path + filename;
+            const char *charpath = full_path.c_str();
+            canvas->SaveAs(charpath);
             //            canvas->Print(charpath, "PNG"); // uncomment to save PDF to file
 
             //            uncommented to add pane 3 for GetHistogram
@@ -114,36 +110,7 @@ void smallmacro(){
             //            lfunction->Draw();
             //            commented to remove pane 3 for a dual slide TCanvas
             //            outtree->Write();
-//                          1           2           3                   4           5           6             7         8               9
-//          plotEvent(int txindex, int rxindex, double noise_flag, int show_geom, int bins, int overlap, int logFlag, double ymin, double ymax){
-            canvas->cd(3);
-//            cout << "\033[1;32mnoise setting: " << noise_flag << endl;
-            auto evG=event->getGraph(rxindex, txindex);
-            if(noise_flag>0){
-//                evG=TUtilRadioScatter::addNoise(evG, noise_flag);
-                evG=TUtilRadioScatter::addNoise(evG, noise_flag);
 
-            }
-            TUtilRadioScatter::titles(evG, "", "Time [ns]", "V");
-            TUtilRadioScatter::style(evG, kBlack, 1, 1);
-            TUtilRadioScatter::xrange(evG, evG->GetX()[0], evG->GetX()[evG->GetN()-1]);
-
-//            int bins = 16, overlap = 14;
-            int bins = 32, overlap = 31;
-          //auto spec=TUtilRadioScatter::FFT::spectrogram(evG, bins, overlap, bins*2, 2, logFlag,ymin, ymax);
-            auto spec=TUtilRadioScatter::FFT::spectrogram(evG, bins, overlap, bins*2, 2,   0,     0,    .2);
-            Float_t xmax = 1;
-            Float_t xmin = 0;
-//            spec->GetXaxis()->SetRange(0,3000);
-            spec->Draw("colz");
-
-            string path = "/home/rj/RadioScatter/outputfiles/";
-            string filename = "event" + to_string(i) + ".png";
-            string full_path = path + filename;
-            const char *charpath = full_path.c_str();
-            canvas->SaveAs(charpath);
-
-//            cout << event->angRVP << " " << endl;
 //        auto rxdata = new vector<TLorentzVector>(event->rx);
 //        double rxX = rxdata->X(0);
 //        cout << rxdata << endl;

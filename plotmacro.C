@@ -8,7 +8,9 @@
 #include <TGraph.h>
 #include <TPaveText.h>
 using namespace std;
+
 //cycles through events. If detected, adds to a power vs frequency plot
+
 void plotmacro(){
 
 //    TString infile = "/home/rj/RadioScatter/doc/smallmultiscat_0MHz_10W_10ns.root";
@@ -17,15 +19,19 @@ void plotmacro(){
     auto ff=TFile::Open(infile, "READ");
 //    TFile *outfile = new TFile("/home/rj/RadioScatter/outputfiles/voltage_time_angle.root", "RECREATE");
 //    TTree *outtree = new TTree("tree", "test label");
+
     int rxindex = 0;
     int txindex = 0;
     int antenna = 0;
     int entry = 0;
     auto tree=(TTree*)ff->Get("tree");
+
     auto event= new RadioScatterEvent();
     tree->SetBranchAddress("event", &event);
     TVector3 n(0,1,0);
+
     // Shuffled loops way (good for macros)
+
     int entries = tree->GetEntries();
     int rxs = event->nrx;
     // TODO: make array sizes dynamic
@@ -41,10 +47,13 @@ void plotmacro(){
 
 // auto *freqs = new double[entries][rxs];
     auto *freqs = new double[30][3];
+
     auto *pows = new double[30][3];
     double frq;
     double pow;
+
     double thresh = 20e-6;
+
     cout << "Trigger threshold is: " << thresh << "\n" << endl;
     for(int k = 0; k < tree->GetEntries(); k++){
         tree->GetEntry(k);
@@ -59,6 +68,7 @@ void plotmacro(){
                     pow = event->peakPowerW(0,j);
                     freq_array[k][j]=frq;
                     power_array[k][j]=pow;
+
                  cout << "Event " << k << " triggered on RX " << j << " at " << event->peakV(0,j) << "V ";
                  cout << "with peak frequency " << freq_array[k][j] << "MHz and power "<< pow << "W" << endl;
                 }
@@ -100,6 +110,9 @@ void plotmacro(){
     c1->Modified();
     c1->Draw();
     c1->SaveAs("/home/rj/new/TriggeredPeakFrequencyVsPower.png");
+
+
+
 //
 //    auto canvas = new TCanvas("canvas", "t00");
 //    //            canvas->Divide(2, 2);
@@ -171,4 +184,8 @@ void plotmacro(){
 //    string full_path = path + filename;
 //    const char *charpath = full_path.c_str();
 //    canvas->SaveAs(charpath);
+
 }
+
+
+

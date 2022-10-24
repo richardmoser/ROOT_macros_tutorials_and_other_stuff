@@ -8,33 +8,28 @@ TGraph* makegraph(int t_window, TH2D *spec){
     int NumFreqBins = spec->GetNbinsX();
     int NumIntensBins = spec->GetNbinsY();
     int binmax = spec->GetMaximumBin(); // bin number of max intensity
-    double *freqs = new double[NumFreqBins]; // array of frequencies
+    double *pows = new double[NumFreqBins]; // array of frequencies
     double *ybin = new double[NumFreqBins]; // array of y bin numbers
     double_t iterator = 0; // iterator for the for loop
     int i = t_window - 390; // time bin number of the max intensity
     for(int j = 0; j < spec->GetNbinsY(); j++){
-        if(j==0){freqs[j]=0;}
-        else{freqs[j]=spec->GetBinContent(i,j);}
+        if(j==0){pows[j]=0;}
+        else{pows[j]=spec->GetBinContent(i,j);}
         ybin[j] = j*0.015625*1000; // y bin number x YBinWidth * 1000MHz/GHz
-//     ybin[j] = j*.00625*1000; // y bin number x .2GHz/32bins * 1000MHz/GHz -- seems not correct
-// TODO: verify scale factor
-//        cout << 390+i << " " << ybin[j] << " " << freqs[j] << endl;
         iterator ++;
     }
-    TGraph *gr = new TGraph(NumFreqBins, ybin, freqs);
+    TGraph *gr = new TGraph(NumFreqBins, ybin, pows);
     return gr;
 }
 
 void doit() {
     TString infile = "/home/rj/RadioScatter/doc/smallmultiscat_0MHz_10W_10ns.root";
     auto ff = TFile::Open(infile, "READ");
-//    TFile *outfile = new TFile("/home/rj/RadioScatter/outputfiles/voltage_time_angle.root", "RECREATE");
-//    TTree *outtree = new TTree("tree", "test label");
 
     TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
     c1->Divide(2, 2);
 //    c1->SetWindowSize(1200, 1200);
-    c1->SetWindowSize(2400, 2400);
+    c1->SetWindowSize(1200, 800);
 
 //    c1->cd(1)->SetGrid();
     gPad->SetLeftMargin(.1);
@@ -61,7 +56,7 @@ void doit() {
     auto tree = (TTree *) ff->Get("tree");
     auto event = new RadioScatterEvent();
     tree->SetBranchAddress("event", &event);
-    tree->GetEntry(29);
+    tree->GetEntry(entry);
 // tree->GetEntries();
 // cout << event->nrx;
 //    auto c1 = TUtilRadioScatter::canvas();
@@ -94,7 +89,7 @@ void doit() {
     auto gr4 = makegraph(binmax+4, spec); gr4->SetMarkerStyle(24);
     auto gr5 = makegraph(binmax-6, spec); gr5->SetMarkerStyle(25);
     auto gr6 = makegraph(binmax+6, spec); gr6->SetMarkerStyle(26);
-    gr1->GetYaxis()->SetRangeUser(1*pow(10,-16.5), 1*pow(10,-11));
+//    gr1->GetYaxis()->SetRangeUser(1*pow(10,-16.5), 1*pow(10,-11));
     c1->cd(2);
     mg->Add(gr0, "ACP");
     mg->Add(gr1, "ACP");
@@ -114,54 +109,15 @@ void doit() {
     TLegend *leg = new TLegend(0.25, 0.6, 0.6, 1);
     leg->SetFillColor(0);
     leg->SetHeader("Frequency vs Power\n");
-    leg->AddEntry(gr5, Form("%dns", binmax-6+390), "p");
-    leg->AddEntry(gr3, Form("%dns", binmax-4+390), "p");
-    leg->AddEntry(gr1, Form("%dns", binmax-2+390), "p");
-    leg->AddEntry(gr0, Form("%dns", binmax+390), "p");
-    leg->AddEntry(gr2, Form("%dns", binmax+2+390), "p");
-    leg->AddEntry(gr4, Form("%dns", binmax+4+390), "p");
-    leg->AddEntry(gr6, Form("%dns", binmax+6+390), "p");
+    leg->AddEntry(gr5, Form("%dns", binmax-6), "p");
+    leg->AddEntry(gr3, Form("%dns", binmax-4), "p");
+    leg->AddEntry(gr1, Form("%dns", binmax-2), "p");
+    leg->AddEntry(gr0, Form("%dns", binmax), "p");
+    leg->AddEntry(gr2, Form("%dns", binmax+2), "p");
+    leg->AddEntry(gr4, Form("%dns", binmax+4), "p");
+    leg->AddEntry(gr6, Form("%dns", binmax+6), "p");
     leg->Draw();
 
-//    int NumFreqBins = spec->GetNbinsX();
-//    int NumIntensBins = spec->GetNbinsY();
-//    cout << NumFreqBins << endl;
-//    cout << NumIntensBins << endl;
-//    int binmax = spec->GetMaximumBin(); // bin number of max intensity
-//    cout << "Binmax time: " << binmax -390 << "ns" << endl; // 390 is the time bin number of the first bin
-//
-//    int  time_window = 479;
-//
-//    c1->cd(2)->SetLogy(1); // log scale for y axis
-//    double *freqs = new double[NumFreqBins]; // array of frequencies
-//    double *ybin = new double[NumFreqBins]; // array of y bin numbers
-//    double_t iterator = 0; // iterator for the for loop
-//    int i = time_window - 390; // time bin number of the max intensity
-//    for(int j = 0; j < spec->GetNbinsY(); j++){
-//        if(j==0){
-//            freqs[j]=0;
-//        }
-//        else{
-//            freqs[j]=spec->GetBinContent(i,j);
-//        }
-//        ybin[j] = j*0.015625*1000; // y bin number x YBinWidth * 1000MHz/GHz
-////     ybin[j] = j*.00625*1000; // y bin number x .2GHz/32bins * 1000MHz/GHz -- seems not correct
-//// TODO: verify scale factor
-//
-////        cout << 390+i << " " << ybin[j] << " " << freqs[j] << endl;
-//        iterator ++;
-//    }
-//    TGraph *gr = new TGraph(NumFreqBins, ybin, freqs);
-//    gr->GetYaxis()->SetRangeUser(1*pow(10,-16.5), 1*pow(10,-11));
-//    gr->SetMarkerColor(4);
-//    gr->SetMarkerSize(.5);
-//    gr->SetMarkerStyle(20);
-//    gr->GetXaxis()->SetLimits(0,200);
-//    gr->SetTitle(Form("Frequency vs Power at time %dns", 390+i));
-//    gr->GetXaxis()->SetTitle("");
-//    gr->GetYaxis()->SetTitle("WGHz^{-1} x 10^{-12}");
-
-//    c1->Draw();
 
     c1->SaveAs("/home/rj/RadioScatter/outputfiles/powerfreq.png");
 
