@@ -77,6 +77,7 @@ double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
     const char *charpath = full_path.c_str();
     c2->SaveAs(charpath);
 
+    
     TH2D *spec2 = (TH2D*)spec->Clone();
     auto c3 = new TCanvas("c2", "c2", 800, 600);
     spec2->GetYaxis()->SetRangeUser(0, 1);
@@ -120,7 +121,8 @@ void doit() {
     TUtilRadioScatter::titles(evG, "", "Time [ns]", "V");
     TUtilRadioScatter::style(evG, kBlack, 1, 1);
     TUtilRadioScatter::xrange(evG, evG->GetX()[0], evG->GetX()[evG->GetN() - 1]);
-    int bins = 32, overlap = 31;
+//    int bins = 32, overlap = 31;
+    int bins = 128, overlap = 124;
     auto spec = TUtilRadioScatter::FFT::spectrogram(evG, bins, overlap, bins * 2, 2, 0, 0, .2); // generates spectrogram spec
     c1->SetLogy(0); // set y axis to linear
     c1->cd(1); //moves to canvas 1, upper left
