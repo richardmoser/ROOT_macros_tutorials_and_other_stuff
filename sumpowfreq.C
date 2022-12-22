@@ -2,100 +2,14 @@
 #include <TGraph.h>
 using namespace std;
 
-TGraph* makegraph(int t_window, TH2D *spec){
-    int NumFreqBins = spec->GetNbinsX();
-    int NumIntensBins = spec->GetNbinsY();
-    int binmax = spec->GetMaximumBin(); // bin number of max intensity
-    double *pows = new double[NumFreqBins]; // array of frequencies
-    double *ybin = new double[NumFreqBins]; // array of y bin numbers
-    double_t iterator = 0; // iterator for the for loop
-    int i = t_window - 390; // time bin number of the max intensity
-    for(int j = 0; j < spec->GetNbinsY(); j++){
-        if(j==0){pows[j]=0;}
-        else{pows[j]=spec->GetBinContent(i,j);}
-        ybin[j] = j*0.015625*1000; // y bin number x YBinWidth * 1000MHz/GHz
-        iterator ++;
-    }
-    TGraph *gr = new TGraph(NumFreqBins, ybin, pows);
-    return gr;
-}
+int glob_to_x(TH2* hist, int global);
+int glob_to_y(TH2* hist, int global);
+double* power_generator(TH2D *spec, double *pows_in, double_t loop_i);
 
-int glob_to_x(TH2* hist, int global){
-    int x_bins = hist->GetNbinsX();
-    int temp = global % (x_bins + 2);
-    // x bin value is global % the total number of x bins (GetNbinsX doesn't count either buffer bin)
-    return temp;
-}
-
-int glob_to_y(TH2* hist, int global){
-    int x_bins = hist->GetNbinsX();
-    int temp = global / (x_bins + 2);
-    // x bin value is global % the total number of x bins (GetNbinsX doesn't count either buffer bin)
-    return temp;
-}
-
-//defines a function which returns pows
-double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
-    int NumFreqBins = spec->GetNbinsX();
-    int NumIntensBins = spec->GetNbinsY();
-    int binmax = spec->GetMaximumBin(); // bin number of max intensity
-    int xmax = glob_to_x(spec, binmax); // x bin number of max intensity
-    double *pows2 = new double[NumFreqBins]; // array of frequencies
-    double *retpows = new double[NumFreqBins]; // array of frequencies
-    double *ybin = new double[NumFreqBins]; // array of y bin numbers
-    double_t iterator = 0; // iterator for the for loop
-//    int i = binmax - 390; // time bin number of the max intensity
-//    int i = 460 - 390;
-    int i = xmax;
-    for(int j = 0; j < spec->GetNbinsY(); j++){
-        if(j==0){
-            pows2[j]=0;
-        }
-        else{
-            pows2[j]=spec->GetBinContent(i,j);
-        }
-//        ybin[j] = j*.00625*1000*2.5; // y bin number x .2GHz/32bins * 1000MHz/GHz * 2.5 to account for overlap
-        ybin[j] = j*.0625*1000*2.5; // y bin number x .2GHz/32bins * 1000MHz/GHz * 2.5 to account for overlap
-
-        iterator ++;
-    }
-    // loop over each entry in pows, add the value of pows_in, then return pows
-    for (int k = 0; k < NumFreqBins; k++){
-        retpows[k] = pows2[k] + 1*pows_in[k];
-//        cout << "pows[" << k << "] = " << pows[k] << " retpows[" << k << "] = " << retpows[k] << endl;
-    }
-    int intk = loop_i;
-    spec->GetYaxis()->SetRangeUser(0, 5);
-//    spec->GetZaxis()->SetRangeUser(5*pow(10,-17),1*pow(10,-14));
-    spec->SetStats(0); // removes stats box
-
-    auto c2 = new TCanvas("c2", "c2", 800, 600);
-    spec->Draw("colz");
-    string path = "/home/rj/RadioScatter/outputfiles/";
-    string filename = "spec_wide_" + to_string(intk) + ".png";
-    string full_path = path + filename;
-    const char *charpath = full_path.c_str();
-    c2->SaveAs(charpath);
-
-    TH2D *spec2 = (TH2D*)spec->Clone();
-    auto c3 = new TCanvas("c2", "c2", 800, 600);
-    spec2->GetYaxis()->SetRangeUser(0, 1);
-    spec2->Draw("colz");
-    string path2 = "/home/rj/RadioScatter/outputfiles/";
-    string filename2 = "spec_narrow_" + to_string(intk) + ".png";
-    string full_path2 = path + filename2;
-    const char *charpath2 = full_path2.c_str();
-    c3->SaveAs(charpath2);
-
-
-
-    return retpows;
-}
 
 void doit() {
-//    TString infile = "/home/rj/RadioScatter/doc/smallmultiscat_0MHz_10W_10ns.root";
+//    TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns2.root";
     TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns.root";
-
     auto ff = TFile::Open(infile, "READ");
 
     TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
@@ -113,17 +27,17 @@ void doit() {
     auto tree = (TTree *) ff->Get("tree");
     auto event = new RadioScatterEvent();
     tree->SetBranchAddress("event", &event);
-
     int entries = tree->GetEntries();
     tree->GetEntry(entry); // get the first entry
     auto evG = event->getGraph(rxindex, txindex); // generates graph evG
     TUtilRadioScatter::titles(evG, "", "Time [ns]", "V");
     TUtilRadioScatter::style(evG, kBlack, 1, 1);
     TUtilRadioScatter::xrange(evG, evG->GetX()[0], evG->GetX()[evG->GetN() - 1]);
-//    int bins = 32, overlap = 31;
-    int bins = 64, overlap = 62;
+    int bins = 32, overlap = 31;
+//    int bins = 64, overlap = 62;
 
     auto spec = TUtilRadioScatter::FFT::spectrogram(evG, bins, overlap, bins * 2, 2, 0, 0, .2); // generates spectrogram spec
+//    spectrogram(TGraph *gr, Int_t binsize , Int_t overlap, Int_t zero_pad_length, int win_type, int dbFlag, double ymin, double ymax){
     c1->SetLogy(0); // set y axis to linear
     c1->cd(1); //moves to canvas 1, upper left
     c1->cd(1)->SetLogy(0); // set y axis to linear
@@ -131,21 +45,17 @@ void doit() {
     c1->cd(1)->SetLogz(1); // set z axis to log
 //    spec->GetZaxis()->SetRangeUser(5*pow(10,-12),1*pow(10,-10));
 //    spec->GetZaxis()->SetRangeUser(5*pow(10,-17),1*pow(10,-14));
-
     spec->SetStats(0); // removes stats box
     spec->Draw("colz"); // draws spectrogram to canvas 1 upper left
 
     int  time_window = 479; // time window of interest
-
     auto mg = new TMultiGraph(); // creates a multigraph
     c1->cd(2)->SetLogy(1); // set y axis to logarithmic
-
-    int NumFreqBins=spec->GetNbinsX();
-    int NumTimeBins=spec->GetNbinsY();
+    int NumFreqBins=spec->GetNbinsY();
+    int NumTimeBins=spec->GetNbinsX();
     double *pows = new double[NumFreqBins];
     double *ybin = new double[NumFreqBins];
     double_t iterator = 0;
-
     int spec_start_time; // time at which the spectrogram "spec" starts
     if(fmod(evG->GetX()[0], 1) >=.5){ // C++ rounds down for all numbers, so
         spec_start_time = evG->GetX()[0] + 1; // if the decimal is >= .5, add 1 to the integer part
@@ -194,14 +104,14 @@ void doit() {
     gr->SetTitle(Form("Frequency vs asdfasdf Power at time %dns", (i + spec_start_time))); // set title of graph with the time of maximum intensity
     gr->GetXaxis()->SetTitle("Frequency (MHz)");
     gr->GetYaxis()->SetTitle("Power WGHz^{-1}");
-    double *newpows = new double[NumFreqBins];
+    double *newpows = new double[entries];
 
     // vvv
     for(int j = 0; j < spec->GetNbinsY(); j++){
         newpows[j]=0;
     }
     iterator ++;
-
+    cout << "checkpoint before power generator" << endl;
     for (int k = 0; k < entries -1; k++){
         tree->GetEntry(k); // get the first entry
         auto evG = event->getGraph(rxindex, txindex); // generates graph evG
@@ -213,7 +123,7 @@ void doit() {
         newpows = power_generator(spec2, newpows, k);
 //        cout << k << endl;
     }
-
+    cout << "checkpoint after power generator" << endl;
     c1->cd(2);
     mg->Add(gr, "ACP");
 
@@ -270,5 +180,102 @@ void doit() {
 //    leg->Draw();
 
     c1->SaveAs("/home/rj/RadioScatter/outputfiles/sumpowfreq.png");
+    cout << spec->GetNbinsY() << endl;
 
 }
+
+int glob_to_x(TH2* hist, int global){
+    int x_bins = hist->GetNbinsX();
+    int temp = global % (x_bins + 2);
+    // x bin value is global % the total number of x bins (GetNbinsX doesn't count either buffer bin)
+    return temp;
+}
+
+
+int glob_to_y(TH2* hist, int global){
+    int x_bins = hist->GetNbinsX();
+    int temp = global / (x_bins + 2);
+    // x bin value is global % the total number of x bins (GetNbinsX doesn't count either buffer bin)
+    return temp;
+}
+
+double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
+    int NumFreqBins = spec->GetNbinsX();
+    int NumIntensBins = spec->GetNbinsY();
+    int binmax = spec->GetMaximumBin(); // bin number of max intensity
+    int xmax = glob_to_x(spec, binmax); // x bin number of max intensity
+    double *pows2 = new double[NumFreqBins]; // array of frequencies
+    double *retpows = new double[NumFreqBins]; // array of frequencies
+    double *ybin = new double[NumFreqBins]; // array of y bin numbers
+    double_t iterator = 0; // iterator for the for loop
+//    int i = binmax - 390; // time bin number of the max intensity
+//    int i = 460 - 390;
+    int i = xmax;
+    cout << spec->GetNbinsY() << endl;
+    for(int j = 0; j < spec->GetNbinsY(); j++){
+        if(j==0){
+            pows2[j]=0;
+        }
+        else{
+            pows2[j]=spec->GetBinContent(i,j);
+        }
+//        ybin[j] = j*.00625*1000*2.5; // y bin number x .2GHz/32bins * 1000MHz/GHz * 2.5 to account for overlap
+        ybin[j] = j*.0625*1000*2.5; // y bin number x .2GHz/32bins * 1000MHz/GHz * 2.5 to account for overlap
+
+        iterator ++;
+    }
+    // loop over each entry in pows, add the value of pows_in, then return pows
+    for (int k = 0; k < NumFreqBins; k++){
+        //if pows2 is -nan or -inf, set it to 0
+//        if(pows2[k] != pows2[k] || pows2[k] == -std::numeric_limits<double>::infinity()){
+//            pows2[k] = 0;
+//            cout << "pows2[" << k << "] is corrected to " << pows2[k] << endl;
+//        }
+        retpows[k] = pows2[k] + pows_in[k];
+        cout << "pows[" << k << "] = " << pows2[k] << " retpows[" << k << "] = " << retpows[k] << endl;
+    }
+    int intk = loop_i;
+    spec->GetYaxis()->SetRangeUser(0, 5);
+//    spec->GetZaxis()->SetRangeUser(5*pow(10,-17),1*pow(10,-14));
+    spec->SetStats(0); // removes stats box
+
+//    auto c2 = new TCanvas("c2", "c2", 800, 600);
+//    spec->Draw("colz");
+//    string path = "/home/rj/RadioScatter/outputfiles/";
+//    string filename = "spec_wide_" + to_string(intk) + ".png";
+//    string full_path = path + filename;
+//    const char *charpath = full_path.c_str();
+//    c2->SaveAs(charpath);
+//
+//    TH2D *spec2 = (TH2D*)spec->Clone();
+//    auto c3 = new TCanvas("c2", "c2", 800, 600);
+//    spec2->GetYaxis()->SetRangeUser(0, 1);
+//    spec2->Draw("colz");
+//    string path2 = "/home/rj/RadioScatter/outputfiles/";
+//    string filename2 = "spec_narrow_" + to_string(intk) + ".png";
+//    string full_path2 = path + filename2;
+//    const char *charpath2 = full_path2.c_str();
+//    c3->SaveAs(charpath2);
+
+
+
+    return retpows;
+}
+
+//TGraph* makegraph(int t_window, TH2D *spec){
+//    int NumFreqBins = spec->GetNbinsX();
+//    int NumIntensBins = spec->GetNbinsY();
+//    int binmax = spec->GetMaximumBin(); // bin number of max intensity
+//    double *pows = new double[NumFreqBins]; // array of frequencies
+//    double *ybin = new double[NumFreqBins]; // array of y bin numbers
+//    double_t iterator = 0; // iterator for the for loop
+//    int i = t_window - 390; // time bin number of the max intensity
+//    for(int j = 0; j < spec->GetNbinsY(); j++){
+//        if(j==0){pows[j]=0;}
+//        else{pows[j]=spec->GetBinContent(i,j);}
+//        ybin[j] = j*0.015625*1000; // y bin number x YBinWidth * 1000MHz/GHz
+//        iterator ++;
+//    }
+//    TGraph *gr = new TGraph(NumFreqBins, ybin, pows);
+//    return gr;
+//}
