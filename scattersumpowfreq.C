@@ -147,8 +147,6 @@ void doit() {
     cout << "NumFreqBins = " << NumFreqBins << endl;
     cout << "NumTimeBins = " << NumTimeBins << endl;
 
-
-
     int i = xmax;
     for(int j = 0; j < spec->GetNbinsY(); j++){
         if(j==0){
@@ -173,8 +171,8 @@ void doit() {
         }
         iterator ++;
     }
-    cout << max << endl;
-    cout << maxj << endl;
+    cout << "max: " << max << endl;
+    cout << "maxj: " << maxj << endl;
 
     TGraph *gr = new TGraph(NumFreqBins, ybin, pows);
 //    gr->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-8));
@@ -189,6 +187,47 @@ void doit() {
     gr->GetXaxis()->SetTitle("Frequency (MHz)");
     gr->GetYaxis()->SetTitle("Power WGHz^{-1}");
     gr->Draw("ACP");
+
+    c1->cd(3);
+
+     int n = 32;
+    double_t x[n], y[n];
+    for(int i = 0; i < n; i++){
+        x[i] = max;
+        y[i] = maxj;
+    }
+    TGraph *gr2 = new TGraph(n, y, x);
+
+
+    TGraph *gr1 = new TGraph(NumFreqBins, ybin, pows);
+//    gr->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-8));
+    gr1->GetYaxis()->SetRangeUser(1*pow(10,-18), 5*pow(10,-13));
+//    gr->GetYaxis()->SetLimits(1*pow(10,-18), 1*pow(10,-15));
+    gr1->SetMarkerColor(4);
+    gr1->SetMarkerSize(.5);
+    gr1->SetMarkerStyle(21);
+//    gr->GetXaxis()->SetLimits(0,200);
+    gr1->GetXaxis()->SetLimits(0,5000);
+    gr1->SetTitle(Form("Frequency vs asdfasdf Power at time %dns", (i + spec_start_time))); // set title of graph with the time of maximum intensity
+    gr1->GetXaxis()->SetTitle("Frequency (MHz)");
+    gr1->GetYaxis()->SetTitle("Power WGHz^{-1}");
+
+    c1->cd(4);
+    c1->cd(4)->SetLogy(1);
+    gr2->GetYaxis()->SetRangeUser(1*pow(10,-14), 5*pow(10,-12));
+    gr2->SetMarkerColor(4);
+    gr2->SetMarkerSize(.5);
+    gr2->SetMarkerStyle(21);
+    gr2->Draw("AP");
     c1->Draw();
+
+//    delete c1;
+//    delete event;
+//    delete mg;
+//    delete [] pows;
+//    delete [] ybin;
+//    delete gr;
+//    delete gr1;
+//    delete gr2;
 
 }
