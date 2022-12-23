@@ -7,7 +7,9 @@ int glob_to_y(TH2* hist, int global);
 double* power_generator(TH2D *spec, double *pows_in, double_t loop_i);
 
 
-void doit() {
+//void doit() {
+void sumpowfreq() {
+
 //    TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns2.root";
     TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns.root";
     auto ff = TFile::Open(infile, "READ");
@@ -19,6 +21,13 @@ void doit() {
     gPad->SetLeftMargin(.1);
     gPad->SetBottomMargin(0);
     c1->cd(1);
+
+    c1->cd(1)->SetLeftMargin(.15);
+    c1->cd(1)->SetRightMargin(.2);
+    c1->cd(2)->SetLeftMargin(.15);
+    c1->cd(3)->SetLeftMargin(.15);
+    c1->cd(3)->SetRightMargin(.2);
+    c1->cd(4)->SetLeftMargin(.15);
 
     int rxindex = 0;
     int txindex = 0;
@@ -49,7 +58,7 @@ void doit() {
     spec->Draw("colz"); // draws spectrogram to canvas 1 upper left
 
     int  time_window = 479; // time window of interest
-    auto mg = new TMultiGraph(); // creates a multigraph
+//    auto mg = new TMultiGraph(); // creates a multigraph
     c1->cd(2)->SetLogy(1); // set y axis to logarithmic
     int NumFreqBins=spec->GetNbinsY();
     int NumTimeBins=spec->GetNbinsX();
@@ -104,7 +113,7 @@ void doit() {
     gr->SetTitle(Form("Frequency vs asdfasdf Power at time %dns", (i + spec_start_time))); // set title of graph with the time of maximum intensity
     gr->GetXaxis()->SetTitle("Frequency (MHz)");
     gr->GetYaxis()->SetTitle("Power WGHz^{-1}");
-    double *newpows = new double[entries];
+    double *newpows = new double[NumFreqBins];
 
     // vvv
     for(int j = 0; j < spec->GetNbinsY(); j++){
@@ -121,26 +130,28 @@ void doit() {
         int bins = 32, overlap = 31;
         auto spec2 = TUtilRadioScatter::FFT::spectrogram(evG, bins, overlap, bins * 2, 2, 0, 0, .2); // generates spectrogram spec
         newpows = power_generator(spec2, newpows, k);
-//        cout << k << endl;
+        delete evG;
+        delete spec2;
+//        cout << k << endl;  // uncommment to print the loop number
     }
     cout << "checkpoint after power generator" << endl;
     c1->cd(2);
-    mg->Add(gr, "ACP");
-
-    mg->GetXaxis()->SetLimits(0,200);
-    mg->GetXaxis()->SetTitle("Frequency (MHz)");
-    mg->GetYaxis()->SetTitle("Power (WGHz^{-1})");
-    mg->SetTitle(Form("Frequency vs Power at time %dns on ", 390+i));
+//    mg->Add(gr, "ACP");
+//
+//    mg->GetXaxis()->SetLimits(0,200);
+//    mg->GetXaxis()->SetTitle("Frequency (MHz)");
+//    mg->GetYaxis()->SetTitle("Power (WGHz^{-1})");
+//    mg->SetTitle(Form("Frequency vs Power at time %dns on ", 390+i));
 //    mg->Draw("ACP");
     gr->Draw("ACP");
 
     c1->cd(3);
     c1->cd(3)->SetLogy(1);
-    TGraph *gr3 = (TGraph*)gr->Clone();
-    gr3->GetXaxis()->SetLimits(0,500);
-    gr3->GetXaxis()->SetTitle("Frequency (MHz)");
-
-    gr3->Draw("ACP");
+//    TGraph *gr3 = (TGraph*)gr->Clone();
+//    gr3->GetXaxis()->SetLimits(0,500);
+//    gr3->GetXaxis()->SetTitle("Frequency (MHz)");
+//
+//    gr3->Draw("ACP");
 
     c1->cd(5);
     c1->cd(5)->SetLogy(1);
@@ -159,12 +170,12 @@ void doit() {
 
     c1->cd(6);
     c1->cd(6)->SetLogy(1);
-    TGraph *gr2 = (TGraph*)gr1->Clone();
-    gr2->SetTitle("Frequency vs Power summed over all events (0-500MHz)");
-    gr2->GetXaxis()->SetTitle("Frequency (MHz)");
-    gr2->GetXaxis()->SetLimits(0,500);
-    gr2->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-7));
-    gr2->Draw("ACP");
+//    TGraph *gr2 = (TGraph*)gr1->Clone();
+//    gr2->SetTitle("Frequency vs Power summed over all events (0-500MHz)");
+//    gr2->GetXaxis()->SetTitle("Frequency (MHz)");
+//    gr2->GetXaxis()->SetLimits(0,500);
+//    gr2->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-7));
+//    gr2->Draw("ACP");
 
 
 //    TLegend *leg = new TLegend(0.25, 0.6, 0.6, 1);
@@ -181,6 +192,17 @@ void doit() {
 
     c1->SaveAs("/home/rj/RadioScatter/outputfiles/sumpowfreq.png");
     cout << spec->GetNbinsY() << endl;
+
+//==========================================================================================
+
+//    delete gr;
+//    delete gr1;
+//    delete spec;
+//    delete event;
+//    delete [] ybin;
+//    delete [] pows;
+//    delete c1;
+////    delete mg;
 
 }
 
@@ -226,19 +248,19 @@ double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
     }
     // loop over each entry in pows, add the value of pows_in, then return pows
     for (int k = 0; k < NumFreqBins; k++){
-        //if pows2 is -nan or -inf, set it to 0
-//        if(pows2[k] != pows2[k] || pows2[k] == -std::numeric_limits<double>::infinity()){
-//            pows2[k] = 0;
-//            cout << "pows2[" << k << "] is corrected to " << pows2[k] << endl;
-//        }
+//        if pows2 is -nan or -inf, set it to 0
+        if(pows2[k] != pows2[k] || pows2[k] == -std::numeric_limits<double>::infinity()){
+            pows2[k] = 0;
+            cout << "pows2[" << k << "] is corrected to " << pows2[k] << endl;
+        }
         retpows[k] = pows2[k] + pows_in[k];
-        cout << "pows[" << k << "] = " << pows2[k] << " retpows[" << k << "] = " << retpows[k] << endl;
+//        cout << "pows[" << k << "] = " << pows2[k] << " retpows[" << k << "] = " << retpows[k] << endl;
     }
-    int intk = loop_i;
     spec->GetYaxis()->SetRangeUser(0, 5);
 //    spec->GetZaxis()->SetRangeUser(5*pow(10,-17),1*pow(10,-14));
     spec->SetStats(0); // removes stats box
 
+//    int intk = loop_i;
 //    auto c2 = new TCanvas("c2", "c2", 800, 600);
 //    spec->Draw("colz");
 //    string path = "/home/rj/RadioScatter/outputfiles/";
@@ -257,7 +279,9 @@ double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
 //    const char *charpath2 = full_path2.c_str();
 //    c3->SaveAs(charpath2);
 
-
+    delete [] pows2;
+    delete [] ybin;
+//    delete [] retpows;
 
     return retpows;
 }
