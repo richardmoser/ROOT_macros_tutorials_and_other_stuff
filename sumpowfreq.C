@@ -7,9 +7,7 @@ int glob_to_y(TH2* hist, int global);
 double* power_generator(TH2D *spec, double *pows_in, double_t loop_i);
 
 
-//void doit() {
 void sumpowfreq() {
-
 //    TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns2.root";
     TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns.root";
     auto ff = TFile::Open(infile, "READ");
