@@ -14,20 +14,24 @@ void sumpowfreq() {
     TString infile = "/home/rj/RadioScatter/outputfiles/multiscat_0GHz_10W_10ns.root";
     auto ff = TFile::Open(infile, "READ");
 
-    TCanvas *c1 = new TCanvas("c1", "c1", 800, 600);
+    TCanvas *c1 = new TCanvas("c1", "c1", 2400, 1600);
     c1->Divide(3, 2);
 //    c1->SetWindowSize(1200, 1200);
-    c1->SetWindowSize(2000, 1000);
+    c1->SetWindowSize(3200, 2000);
     gPad->SetLeftMargin(.1);
     gPad->SetBottomMargin(0);
     c1->cd(1);
 
     c1->cd(1)->SetLeftMargin(.15);
-    c1->cd(1)->SetRightMargin(.2);
+    c1->cd(1)->SetRightMargin(.15);
     c1->cd(2)->SetLeftMargin(.15);
     c1->cd(3)->SetLeftMargin(.15);
-    c1->cd(3)->SetRightMargin(.2);
+    c1->cd(3)->SetRightMargin(.15);
     c1->cd(4)->SetLeftMargin(.15);
+    c1->cd(4)->SetRightMargin(.15);
+    c1->cd(5)->SetLeftMargin(.15);
+    c1->cd(6)->SetLeftMargin(.15);
+    c1->cd(6)->SetRightMargin(.15);
 
     int rxindex = 0;
     int txindex = 0;
@@ -110,7 +114,7 @@ void sumpowfreq() {
     gr->SetMarkerStyle(21);
 //    gr->GetXaxis()->SetLimits(0,200);
     gr->GetXaxis()->SetLimits(0,5000);
-    gr->SetTitle(Form("Frequency vs asdfasdf Power at time %dns", (i + spec_start_time))); // set title of graph with the time of maximum intensity
+    gr->SetTitle(Form("Frequency vs Power at time %dns", (i + spec_start_time))); // set title of graph with the time of maximum intensity
     gr->GetXaxis()->SetTitle("Frequency (MHz)");
     gr->GetYaxis()->SetTitle("Power WGHz^{-1}");
     double *newpows = new double[NumFreqBins];
@@ -120,7 +124,7 @@ void sumpowfreq() {
         newpows[j]=0;
     }
     iterator ++;
-    cout << "checkpoint before power generator" << endl;
+//    cout << "checkpoint before power generator" << endl;
     for (int k = 0; k < entries -1; k++){
         tree->GetEntry(k); // get the first entry
         auto evG = event->getGraph(rxindex, txindex); // generates graph evG
@@ -134,7 +138,7 @@ void sumpowfreq() {
         delete spec2;
 //        cout << k << endl;  // uncommment to print the loop number
     }
-    cout << "checkpoint after power generator" << endl;
+//    cout << "checkpoint after power generator" << endl;
     c1->cd(2);
 //    mg->Add(gr, "ACP");
 //
@@ -147,11 +151,11 @@ void sumpowfreq() {
 
     c1->cd(3);
     c1->cd(3)->SetLogy(1);
-//    TGraph *gr3 = (TGraph*)gr->Clone();
-//    gr3->GetXaxis()->SetLimits(0,500);
-//    gr3->GetXaxis()->SetTitle("Frequency (MHz)");
-//
-//    gr3->Draw("ACP");
+    TGraph *gr3 = (TGraph*)gr->Clone();
+    gr3->GetXaxis()->SetLimits(0,500);
+    gr3->GetXaxis()->SetTitle("Frequency (MHz)");
+
+    gr3->Draw("ACP");
 
     c1->cd(5);
     c1->cd(5)->SetLogy(1);
@@ -170,12 +174,12 @@ void sumpowfreq() {
 
     c1->cd(6);
     c1->cd(6)->SetLogy(1);
-//    TGraph *gr2 = (TGraph*)gr1->Clone();
-//    gr2->SetTitle("Frequency vs Power summed over all events (0-500MHz)");
-//    gr2->GetXaxis()->SetTitle("Frequency (MHz)");
-//    gr2->GetXaxis()->SetLimits(0,500);
-//    gr2->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-7));
-//    gr2->Draw("ACP");
+    TGraph *gr2 = (TGraph*)gr1->Clone();
+    gr2->SetTitle("Frequency vs Power summed over all events (0-500MHz)");
+    gr2->GetXaxis()->SetTitle("Frequency (MHz)");
+    gr2->GetXaxis()->SetLimits(0,500);
+    gr2->GetYaxis()->SetRangeUser(1*pow(10,-18), 1*pow(10,-7));
+    gr2->Draw("ACP");
 
 
 //    TLegend *leg = new TLegend(0.25, 0.6, 0.6, 1);
@@ -233,7 +237,7 @@ double* power_generator(TH2D *spec, double *pows_in, double_t loop_i){
 //    int i = binmax - 390; // time bin number of the max intensity
 //    int i = 460 - 390;
     int i = xmax;
-    cout << spec->GetNbinsY() << endl;
+//    cout << spec->GetNbinsY() << endl;
     for(int j = 0; j < spec->GetNbinsY(); j++){
         if(j==0){
             pows2[j]=0;
