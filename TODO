@@ -1,5 +1,6 @@
 TODO:
 
-- Fix max bin targeting in sumpowfreq
-- figure out why it isn't summing
-      it's probably because it is targetting a bunk bin number and summing over 0s and bunk pointer crap
+    - autoscale spec w/max & min y axis values
+    - fix default name naming convention for frequency in scat.cc
+    - investigate memory management issues in sumpowfreq.C
+        - bin overlap is not the issue -> frq bin comes from sample rate in scat.cc
