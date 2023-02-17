@@ -248,6 +248,8 @@ void doit() {
     cout << gr1->GetMaximum() << endl;
 
     c1->cd(6);
+
+
     c1->cd(6)->SetLogy(1);
     TGraph *gr2 = (TGraph*)gr1->Clone();
     gr2->SetTitle("Frequency vs Power summed over all events (0-500MHz)");
