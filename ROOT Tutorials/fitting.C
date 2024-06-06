@@ -30,8 +30,8 @@ void fitting()
                 10.0, 10.0, 10.0, 15.0, 15.0, 20.0, 10.0, 8.0, 10.0, 10.0, 10.0, 10.0, 15.0, 15.0, 20.0, 10.0, 8.0,
                 10.0, 10.0, 10.0, 10.0, 20.0, 15.0, 20.0, 10.0, 10.0, 15.0, 8.0, 10.0, 15.0, 8.0, 10.0, 15.0, 10.0,
                 10.0, 15.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0, 10.0, 10.0, 10.0, 15.0 };
-    double y[242] = {0.3, 0.5, 1.0, 1.0, 6.0, 6.0, 5.0, 10.0, 10.0, 8.0, 13.0, 12.0, 10.0, 16.0, 16.0, 13.0, 7.0, 6.0, 6.0,
-                10.0, 10.0, 9.0, 13.0, 13.0, 11.0, 17.0, 17.0, 14.0, 6.0, 6.0, 5.0, 9.0, 9.0, 7.0, 12.0, 12.0, 9.0,
+    double y[242] = {0.3, 0.5, 1.0, 1.0, 6.0, 6.0, 5.0, 10.0, 10.0, 8.0, 13.0, 12.0, 10.0, 16.0, 16.0, 13.0, 7.0, 6.0,
+                6.0, 10.0, 10.0, 9.0, 13.0, 13.0, 11.0, 17.0, 17.0, 14.0, 6.0, 6.0, 5.0, 9.0, 9.0, 7.0, 12.0, 12.0, 9.0,
                 15.0, 15.0, 12.0, 0.4, 1.0, 1.0, 1.0, 5.0, 5.0, 3.0, 6.0, 6.0, 5.0, 8.0, 8.0, 7.0, 10.0, 10.0, 9.0,
                 0.4, 1.0, 6.0, 9.0, 12.0, 15.0, 6.0, 5.0, 4.0, 8.0, 8.0, 7.0, 11.0, 10.0, 9.0, 13.0, 13.0, 11.0, 7.0,
                 7.0, 6.0, 12.0, 11.0, 10.0, 15.0, 15.0, 13.0, 19.0, 19.0, 16.0, 7.0, 7.0, 6.0, 11.0, 10.0, 9.0, 14.0,
@@ -43,47 +43,45 @@ void fitting()
                 3.0, 4.0, 4.0, 4.0, 7.0, 6.0, 6.0, 3.0, 3.0, 2.0, 4.0, 3.0, 3.0, 5.0, 5.0, 5.0, 4.0, 4.0, 3.0, 5.0, 5.0,
                 4.0, 7.0, 7.0, 6.0, 3.0, 3.0, 5.0, 3.0, 4.0, 6.0, 3.0, 3.0, 5.0, 4.0, 5.0, 7.0, 3.0, 3.0, 3.0, 4.0, 4.0,
                 3.0, 6.0, 6.0, 5.0, 4.0, 3.0, 3.0, 5.0 };
-
+    // initializes the x and y arrays with the data from the Starbucks menu
+    // x is the calcium % daily value and y is the protein in grams
 
     TGraph *graph = new TGraph(242, x, y);
-//  creates a graph with 242 entries, x values from array x, and y values from array y
+    //  creates a graph with 242 entries, x values from array x, and y values from array y
 
     TCanvas *c1 = new TCanvas();
-//    creates new TCanvas named c1
+    //    creates new TCanvas named c1
     c1->SetWindowSize(2000, 1000);
-//    sets the window size of the TCanvas
+    //    sets the window size of the TCanvas
 
-// set the title fo the graph to "Starbucks Drink Nutrition"
     graph->SetTitle("Starbucks Drink Nutrition Comparison");
+    // sets the title fo the graph to "Starbucks Drink Nutrition"
 
     graph->GetXaxis()->SetTitle("Calcium (% DV)");
     graph->GetYaxis()->SetTitle("Protein (g)");
     graph->SetMarkerStyle(4);
     graph->SetMarkerSize(2);
 
-    // fit the graph
     graph->Fit("pol1", "+");
     graph->Fit("pol2", "+");
     graph->Fit("pol3", "+");
     graph->Fit("pol4", "+");
     graph->Fit("pol5", "+");
+    // fits the graph with a polynomial of degree 1-5
 
-    // set pol1 fit line color to blue
     graph->GetFunction("pol1")->SetLineColor(kBlue);
-    // set pol2 fit line color to red
+    // sets pol1 fit line color to blue
     graph->GetFunction("pol2")->SetLineColor(kRed);
-    // set pol3 fit line color to green
+    // sets pol2 fit line color to red
     graph->GetFunction("pol3")->SetLineColor(kGreen);
-    // set pol4 fit line color to yellow
+    // sets pol3 fit line color to green
     graph->GetFunction("pol4")->SetLineColor(kYellow);
-    // set pol5 fit line color to black
+    // sets pol4 fit line color to yellow
     graph->GetFunction("pol5")->SetLineColor(kBlack);
-
-
-
+    // sets pol5 fit line color to black
 
     graph->Draw("AP");
+    // draws the graph to the canvas
 
 }
 
-//run by the terminal command root tut1.C
